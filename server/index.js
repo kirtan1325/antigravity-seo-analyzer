@@ -25,6 +25,7 @@ connectDB();
 app.use(helmet());
 const allowedOrigins = [
   process.env.CLIENT_URL, // your Vercel frontend
+  "https://antigravity-seo-analyzer-client.vercel.app",
 ];
 
 app.use(cors({
