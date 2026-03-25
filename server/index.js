@@ -23,17 +23,35 @@ connectDB();
 
 // ─── Global Middleware ─────────────────────────────────────────────────────
 app.use(helmet());
+const allowedOrigins = [
+  process.env.CLIENT_URL, // your Vercel frontend
+];
+
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow any localhost port in development
-    if (!origin || origin.startsWith('http://localhost:')) {
+    // allow requests with no origin (mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+
+    // allow localhost (dev)
+    if (origin.startsWith("http://localhost")) {
       return callback(null, true);
     }
-    const allowed = [process.env.CLIENT_URL].filter(Boolean);
-    if (allowed.includes(origin)) {
+
+    // allow production frontend
+    const isAllowed = allowedOrigins.some(allowed => {
+      if (!allowed) return false;
+      // Normalise both strings and strip trailing slashes for fool-proof comparison
+      const normAllowed = allowed.trim().replace(/\/$/, '');
+      const normOrigin  = origin.trim().replace(/\/$/, '');
+      return normAllowed === normOrigin;
+    });
+
+    if (isAllowed) {
       return callback(null, true);
     }
-    callback(new Error('Not allowed by CORS'));
+
+    console.log("Blocked by CORS:", origin); // debug log
+    return callback(new Error("Not allowed by CORS"));
   },
   credentials: true,
 }));
