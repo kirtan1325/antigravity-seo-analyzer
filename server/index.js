@@ -32,13 +32,18 @@ app.use(cors({
   origin: (origin, callback) => {
     // allow requests with no origin (mobile apps, curl, etc.)
     if (!origin) return callback(null, true);
-
+    
     // allow localhost (dev)
     if (origin.startsWith("http://localhost")) {
       return callback(null, true);
     }
 
-    // allow production frontend
+    // dynamically allow any Vercel deployment URL
+    if (origin.endsWith(".vercel.app") || origin.endsWith(".onrender.com")) {
+      return callback(null, true);
+    }
+
+    // allow production frontend from env as well
     const isAllowed = allowedOrigins.some(allowed => {
       if (!allowed) return false;
       // Normalise both strings and strip trailing slashes for fool-proof comparison
